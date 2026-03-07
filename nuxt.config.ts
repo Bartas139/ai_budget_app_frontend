@@ -14,6 +14,13 @@ export default defineNuxtConfig({
         "https://ai-budget-app-theta.vercel.app",
     },
   },
+  clerk: {
+    afterSignOutUrl: "/sign-in",
+    signInForceRedirectUrl: "/",
+    signUpForceRedirectUrl: "/",
+    signInUrl: "/sign-in",
+    signUpUrl: "/sign-up",
+  },
 
   app: {
     head: {

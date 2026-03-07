@@ -1,5 +1,7 @@
 <template>
   <div class="min-h-screen bg-canvas font-sans text-ink">
-    <NuxtPage />
+    <ClerkProvider afterSignOutUrl="/sign-in">
+      <NuxtPage />
+    </ClerkProvider>
   </div>
 </template>

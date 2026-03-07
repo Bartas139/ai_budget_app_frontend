@@ -2,7 +2,6 @@
 definePageMeta({ middleware: "auth" });
 
 const { userId } = useAuth();
-userId = computed(() => userId.value ?? "");
 
 const api = useApi();
 
@@ -16,7 +15,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const [txRes, catRes] = await Promise.allSettled([
-      api.getTransactions(userId),
+      api.getTransactions(userId.value),
       api.getCategories(),
     ]);
     if (txRes.status === "fulfilled")
@@ -124,17 +123,7 @@ const monthName = computed(() => {
             <span>Přidat</span>
           </button>
         </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-ink-muted hidden sm:block">{{
-            user?.emailAddresses[0]?.emailAddress
-          }}</span>
-          <button
-            @click="signOut"
-            class="text-sm text-ink-secondary hover:text-ink transition-colors"
-          >
-            Odhlásit
-          </button>
-        </div>
+        <UserButton />
       </div>
     </nav>
 
