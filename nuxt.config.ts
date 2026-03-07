@@ -1,10 +1,7 @@
 export default defineNuxtConfig({
-  compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
   ssr: false,
-  nitro: {
-    preset: "vercel-static", // klíčové pro SPA na Vercelu
-  },
+
   modules: ["@nuxtjs/tailwindcss", "@clerk/nuxt"],
 
   runtimeConfig: {
@@ -13,13 +10,6 @@ export default defineNuxtConfig({
         process.env.NUXT_PUBLIC_API_BASE ||
         "https://ai-budget-app-theta.vercel.app",
     },
-  },
-  clerk: {
-    afterSignOutUrl: "/sign-in",
-    signInForceRedirectUrl: "/",
-    signUpForceRedirectUrl: "/",
-    signInUrl: "/sign-in",
-    signUpUrl: "/sign-up",
   },
 
   app: {
