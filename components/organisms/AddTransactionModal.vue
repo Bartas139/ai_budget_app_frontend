@@ -20,16 +20,17 @@ const suggestion = ref(null);
 const categories = ref([]);
 const selectedCategoryId = ref("");
 const newCategoryName = ref("");
-const confirmMode = ref("existing");
+const confirmMode = ref("ai");
 
 const typeOptions = [
-  { value: "expense", label: "Výdaj",   activeClass: "text-rose-500" },
-  { value: "income",  label: "Příjem",  activeClass: "text-sage-600" },
+  { value: "expense", label: "Výdaj",  activeClass: "text-rose-500" },
+  { value: "income",  label: "Příjem", activeClass: "text-sage-600" },
 ];
 
 const confirmOptions = [
-  { value: "existing", label: "Existující",    activeClass: "text-sky-600" },
-  { value: "new",      label: "Nová kategorie", activeClass: "text-lavender-600" },
+  { value: "ai",       label: "AI návrh",   activeClass: "text-lavender-600" },
+  { value: "existing", label: "Existující", activeClass: "text-sky-600" },
+  { value: "new",      label: "Vlastní",    activeClass: "text-ink" },
 ];
 
 onMounted(async () => {
@@ -66,10 +67,11 @@ const submit = async () => {
     } else if (result.status === "pending_confirmation") {
       pendingData.value = result.transactionDraft;
       suggestion.value = result.suggestion;
-      step.value = "confirm";
+      confirmMode.value = "ai";
       if (result.suggestion.type === "existing_category") {
         selectedCategoryId.value = result.suggestion.categoryId;
       }
+      step.value = "confirm";
     }
   } catch {
     error.value = "Chyba při ukládání. Zkus to znovu.";
@@ -83,16 +85,29 @@ const confirm = async () => {
   error.value = "";
   try {
     const payload = { transactionDraft: pendingData.value };
-    if (confirmMode.value === "new") {
+
+    if (confirmMode.value === "ai") {
+      if (suggestion.value?.type === "new_category") {
+        payload.newCategory = {
+          name: suggestion.value.category.name,
+          description: suggestion.value.category.description || "",
+          icon: suggestion.value.category.icon || "📦",
+          color: suggestion.value.category.color || "#ffffff",
+        };
+      } else {
+        payload.categoryId = suggestion.value.categoryId;
+      }
+    } else if (confirmMode.value === "new") {
       payload.newCategory = {
-        name: newCategoryName.value || suggestion.value?.category?.name,
-        description: suggestion.value?.category?.description || "",
-        icon: suggestion.value?.category?.icon || "📦",
-        color: suggestion.value?.category?.color || "#ffffff",
+        name: newCategoryName.value,
+        description: "",
+        icon: "📦",
+        color: "#ffffff",
       };
     } else {
       payload.categoryId = selectedCategoryId.value;
     }
+
     await api.confirmTransaction(payload);
     emit("saved");
     emit("close");
@@ -102,11 +117,16 @@ const confirm = async () => {
     loading.value = false;
   }
 };
+
+const confirmButtonLabel = computed(() => {
+  if (loading.value) return "Ukládám...";
+  return confirmMode.value === "ai" ? "Použít AI kategorii" : "Potvrdit a uložit";
+});
 </script>
 
 <template>
   <Teleport to="body">
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-ink/10 backdrop-blur-sm" @click="emit('close')" />
 
       <div class="relative bg-white rounded-2xl shadow-elevated w-full max-w-md animate-slide-up overflow-hidden">
@@ -114,7 +134,7 @@ const confirm = async () => {
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-5 border-b border-line">
           <h2 class="font-display text-xl text-ink">
-            {{ step === 'form' ? 'Nová transakce' : 'Potvrdit kategorii' }}
+            {{ step === 'form' ? 'Nová transakce' : 'Zvolit kategorii' }}
           </h2>
           <button
             @click="emit('close')"
@@ -153,23 +173,35 @@ const confirm = async () => {
 
         <!-- STEP 2: Confirm -->
         <div v-else class="p-6 space-y-5">
-          <p class="text-sm text-ink-secondary">AI si není jistá kategorizací. Zvolte způsob zařazení:</p>
+          <TypeToggle v-model="confirmMode" :options="confirmOptions" />
 
-          <!-- AI suggestion box -->
-          <div v-if="suggestion?.type === 'new_category'" class="bg-lavender-50 border border-lavender-100 rounded-xl p-4">
-            <p class="text-xs font-medium text-lavender-600 uppercase tracking-wider mb-2">Návrh AI</p>
-            <div class="flex items-center gap-3">
-              <span class="text-2xl">{{ suggestion.category?.icon ?? '📦' }}</span>
-              <div>
-                <p class="font-medium text-ink text-sm">{{ suggestion.category?.name }}</p>
-                <p class="text-xs text-ink-secondary mt-0.5">{{ suggestion.category?.description }}</p>
+          <!-- TAB: AI návrh -->
+          <div v-if="confirmMode === 'ai'" class="flex flex-col items-center py-4 gap-3">
+            <div
+              class="flex items-center gap-4 px-6 py-4 rounded-2xl border-2 w-full"
+              :style="{
+                backgroundColor: (suggestion?.category?.color ?? '#9B7DD8') + '18',
+                borderColor: (suggestion?.category?.color ?? '#9B7DD8') + '55',
+              }"
+            >
+              <div
+                class="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+                :style="{ backgroundColor: (suggestion?.category?.color ?? '#9B7DD8') + '30' }"
+              >
+                {{ suggestion?.category?.icon ?? '📦' }}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                  <p class="font-semibold text-ink text-base">{{ suggestion?.category?.name ?? 'Nová kategorie' }}</p>
+                  <span class="text-[10px] font-semibold bg-lavender-100 text-lavender-600 px-1.5 py-0.5 rounded-md flex-shrink-0">AI</span>
+                </div>
+                <p class="text-xs text-ink-secondary">{{ suggestion?.category?.description }}</p>
               </div>
             </div>
           </div>
 
-          <TypeToggle v-model="confirmMode" :options="confirmOptions" />
-
-          <div v-if="confirmMode === 'existing'">
+          <!-- TAB: Existující -->
+          <div v-else-if="confirmMode === 'existing'">
             <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Kategorie</label>
             <select
               v-model="selectedCategoryId"
@@ -182,11 +214,12 @@ const confirm = async () => {
             </select>
           </div>
 
+          <!-- TAB: Vlastní -->
           <AppInput
             v-else
             v-model="newCategoryName"
-            label="Název kategorie"
-            :placeholder="suggestion?.category?.name ?? 'Název kategorie'"
+            label="Název nové kategorie"
+            placeholder="Např. Elektronika, Sport..."
           />
 
           <p v-if="error" class="text-rose-500 text-xs font-medium">{{ error }}</p>
@@ -194,7 +227,7 @@ const confirm = async () => {
           <div class="flex gap-3">
             <AppButton variant="ghost" class="px-5 py-2.5" @click="step = 'form'">Zpět</AppButton>
             <AppButton variant="lavender" :loading="loading" full class="py-2.5" @click="confirm">
-              {{ loading ? 'Ukládám...' : 'Potvrdit a uložit' }}
+              {{ confirmButtonLabel }}
             </AppButton>
           </div>
         </div>

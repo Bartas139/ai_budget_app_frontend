@@ -9,6 +9,8 @@ const categories = ref([]);
 const loading = ref(true);
 const showModal = ref(false);
 const deleteTarget = ref(null);
+const dateRange = ref({ from: null, to: null });
+const selectedCategoryIds = ref([]);
 
 const fetchData = async () => {
   loading.value = true;
@@ -25,13 +27,36 @@ const fetchData = async () => {
 
 onMounted(fetchData);
 
-const totalBalance  = computed(() => transactions.value.reduce((s, t) => s + t.amount, 0));
-const totalIncome   = computed(() => transactions.value.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0));
-const totalExpenses = computed(() => transactions.value.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0));
+const filteredTransactions = computed(() => {
+  let result = transactions.value;
+
+  const { from, to } = dateRange.value;
+  if (from || to) {
+    result = result.filter((t) => {
+      const d = new Date(t.date);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      return true;
+    });
+  }
+
+  if (selectedCategoryIds.value.length > 0) {
+    result = result.filter((t) => {
+      const id = typeof t.categoryId === "object" ? t.categoryId?._id : t.categoryId;
+      return selectedCategoryIds.value.includes(id);
+    });
+  }
+
+  return result;
+});
+
+const totalBalance  = computed(() => filteredTransactions.value.reduce((s, t) => s + t.amount, 0));
+const totalIncome   = computed(() => filteredTransactions.value.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0));
+const totalExpenses = computed(() => filteredTransactions.value.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0));
 const fmt = (n) => n.toLocaleString("cs-CZ") + " Kč";
 
 const recent = computed(() =>
-  [...transactions.value]
+  [...filteredTransactions.value]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 12)
 );
@@ -70,9 +95,15 @@ const confirmDelete = async () => {
 
       <template v-else>
         <!-- Page title -->
-        <div class="mb-8 animate-fade-up">
+        <div class="mb-4 animate-fade-up">
           <h1 class="font-display text-3xl text-ink mb-1">Přehled financí</h1>
-          <p class="text-sm text-ink-secondary">{{ transactions.length }} transakcí celkem</p>
+          <p class="text-sm text-ink-secondary">{{ filteredTransactions.length }} transakcí v daném období</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="space-y-2 mb-8 animate-fade-up" style="animation-delay: 0.03s; opacity: 0">
+          <DateRangeFilter @change="dateRange = $event" />
+          <CategoryFilter :categories="categories" @change="selectedCategoryIds = $event" />
         </div>
 
         <!-- Stats -->
@@ -91,11 +122,10 @@ const confirmDelete = async () => {
         <!-- Content grid -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div class="lg:col-span-3">
-            <TransactionList :transactions="transactions" :recent="recent" @delete="requestDelete" />
+            <TransactionList :transactions="filteredTransactions" :recent="recent" @delete="requestDelete" />
           </div>
-          <div class="lg:col-span-2 space-y-6">
-            <SpendingChart :transactions="transactions" />
-            <CategoryList :categories="categories" />
+          <div class="lg:col-span-2">
+            <SpendingChart :transactions="filteredTransactions" />
           </div>
         </div>
       </template>
