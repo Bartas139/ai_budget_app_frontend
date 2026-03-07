@@ -1,15 +1,15 @@
-<script setup lang="ts">
+<script setup>
 definePageMeta({ middleware: "auth" });
 
 const { userId } = useAuth();
 
 const api = useApi();
 
-const transactions = ref<any[]>([]);
-const categories = ref<any[]>([]);
+const transactions = ref([]);
+const categories = ref([]);
 const loading = ref(true);
 const showModal = ref(false);
-const deleteTarget = ref<{ id: string; description: string } | null>(null);
+const deleteTarget = ref({ id: "", description: "" });
 
 const fetchData = async () => {
   loading.value = true;
@@ -18,10 +18,8 @@ const fetchData = async () => {
       api.getTransactions(userId.value),
       api.getCategories(),
     ]);
-    if (txRes.status === "fulfilled")
-      transactions.value = (txRes.value as any) || [];
-    if (catRes.status === "fulfilled")
-      categories.value = (catRes.value as any) || [];
+    if (txRes.status === "fulfilled") transactions.value = txRes.value || [];
+    if (catRes.status === "fulfilled") categories.value = catRes.value || [];
   } catch {}
   loading.value = false;
 };
@@ -42,7 +40,7 @@ const totalExpenses = computed(() =>
     .filter((t) => t.amount < 0)
     .reduce((s, t) => s + Math.abs(t.amount), 0),
 );
-const fmt = (n: number) => n.toLocaleString("cs-CZ") + " Kč";
+const fmt = (n) => n.toLocaleString("cs-CZ") + " Kč";
 
 const recent = computed(() =>
   [...transactions.value]
@@ -51,7 +49,7 @@ const recent = computed(() =>
 );
 
 // Delete flow
-const requestDelete = (id: string, description: string) => {
+const requestDelete = (id, description) => {
   deleteTarget.value = { id, description };
 };
 
