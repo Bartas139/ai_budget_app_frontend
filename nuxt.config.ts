@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   nitro: {
     preset: "vercel-static", // klíčové pro SPA na Vercelu
   },
-  modules: ["@nuxtjs/tailwindcss"],
+  modules: ["@nuxtjs/tailwindcss", "@clerk/nuxt"],
 
   runtimeConfig: {
     public: {
