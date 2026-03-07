@@ -1,6 +1,7 @@
 <script setup>
 const emit = defineEmits(['close', 'saved']);
 const api = useApi();
+const { userId } = useAuth();
 
 const form = reactive({
   description: "",
@@ -41,7 +42,7 @@ const submit = async () => {
         : Math.abs(Number(form.amount));
 
     const result = await api.createTransaction({
-      userId: "user_demo",
+      userId: userId.value,
       amount,
       description: form.description,
       date: form.date,

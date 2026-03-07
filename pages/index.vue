@@ -9,7 +9,7 @@ const transactions = ref([]);
 const categories = ref([]);
 const loading = ref(true);
 const showModal = ref(false);
-const deleteTarget = ref({ id: "", description: "" });
+const deleteTarget = ref(null);
 
 const fetchData = async () => {
   loading.value = true;
