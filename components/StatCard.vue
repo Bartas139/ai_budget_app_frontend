@@ -1,11 +1,11 @@
-<script setup lang="ts">
-defineProps<{
-  label: string;
-  value: string;
-  icon: string;
-  variant: "sage" | "rose" | "sky" | "gold" | "lavender";
-  sub?: string;
-}>();
+<script setup>
+defineProps({
+  label: String,
+  value: String,
+  icon: String,
+  variant: String,
+  sub: String,
+});
 
 const variantMap = {
   sage:     { dot: "bg-sage-400",     bg: "bg-sage-50" },

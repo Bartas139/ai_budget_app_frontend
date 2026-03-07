@@ -1,19 +1,9 @@
-<script setup lang="ts">
+<script setup>
 import dayjs from "dayjs";
 
-const props = defineProps<{
-  transaction: {
-    _id: string;
-    description: string;
-    amount: number;
-    date: string;
-    categoryId?: any;
-    aiCategorized?: boolean;
-    note?: string;
-  };
-}>();
+const props = defineProps({ transaction: Object });
 
-const emit = defineEmits<{ delete: [id: string] }>();
+const emit = defineEmits(['delete']);
 
 const isIncome = computed(() => props.transaction.amount > 0);
 

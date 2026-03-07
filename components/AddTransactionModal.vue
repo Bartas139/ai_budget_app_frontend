@@ -1,29 +1,29 @@
-<script setup lang="ts">
-const emit = defineEmits<{ close: []; saved: [] }>();
+<script setup>
+const emit = defineEmits(['close', 'saved']);
 const api = useApi();
 
 const form = reactive({
   description: "",
   amount: "",
-  type: "expense" as "expense" | "income",
+  type: "expense",
   date: new Date().toISOString().split("T")[0],
   note: "",
   currency: "CZK",
 });
 
-const step = ref<"form" | "confirm">("form");
+const step = ref("form");
 const loading = ref(false);
 const error = ref("");
-const pendingData = ref<any>(null);
-const suggestion = ref<any>(null);
-const categories = ref<any[]>([]);
+const pendingData = ref(null);
+const suggestion = ref(null);
+const categories = ref([]);
 const selectedCategoryId = ref("");
 const newCategoryName = ref("");
-const confirmMode = ref<"existing" | "new">("existing");
+const confirmMode = ref("existing");
 
 onMounted(async () => {
   try {
-    categories.value = (await api.getCategories()) as any[];
+    categories.value = await api.getCategories();
   } catch {}
 });
 
@@ -40,7 +40,7 @@ const submit = async () => {
         ? -Math.abs(Number(form.amount))
         : Math.abs(Number(form.amount));
 
-    const result: any = await api.createTransaction({
+    const result = await api.createTransaction({
       userId: "user_demo",
       amount,
       description: form.description,
@@ -71,7 +71,7 @@ const confirm = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const payload: any = { transactionDraft: pendingData.value };
+    const payload = { transactionDraft: pendingData.value };
     if (confirmMode.value === "new") {
       payload.newCategory = {
         name: newCategoryName.value || suggestion.value?.category?.name,

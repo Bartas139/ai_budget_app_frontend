@@ -1,6 +1,6 @@
-<script setup lang="ts">
-defineProps<{ description: string }>();
-const emit = defineEmits<{ confirm: []; cancel: [] }>();
+<script setup>
+defineProps({ description: String });
+const emit = defineEmits(['confirm', 'cancel']);
 </script>
 
 <template>

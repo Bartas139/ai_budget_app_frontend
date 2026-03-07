@@ -301,7 +301,7 @@ const monthName = computed(() => {
     @saved="fetchData"
   />
   <ConfirmDeleteModal
-    v-if="deleteTarget"
+    v-if="deleteTarget !== null"
     :description="deleteTarget.description"
     @confirm="confirmDelete"
     @cancel="deleteTarget = null"

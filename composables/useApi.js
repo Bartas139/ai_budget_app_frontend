@@ -2,7 +2,7 @@ export const useApi = () => {
   const config = useRuntimeConfig();
   const base = config.public.apiBase;
 
-  const getTransactions = async (userId: string) => {
+  const getTransactions = async (userId) => {
     return await $fetch(`${base}/transactions?userId=${userId}`);
   };
 
@@ -10,21 +10,21 @@ export const useApi = () => {
     return await $fetch(`${base}/categories`);
   };
 
-  const createTransaction = async (data: any) => {
+  const createTransaction = async (data) => {
     return await $fetch(`${base}/transactions`, {
       method: "POST",
       body: data,
     });
   };
 
-  const confirmTransaction = async (data: any) => {
+  const confirmTransaction = async (data) => {
     return await $fetch(`${base}/transactions/confirm`, {
       method: "POST",
       body: data,
     });
   };
 
-  const deleteTransaction = async (id: string) => {
+  const deleteTransaction = async (id) => {
     return await $fetch(`${base}/transactions/${id}`, {
       method: "DELETE",
     });

@@ -1,13 +1,13 @@
-<script setup lang="ts">
+<script setup>
 import { Doughnut } from "vue-chartjs";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const props = defineProps<{ transactions: any[] }>();
+const props = defineProps({ transactions: Array });
 
 const chartData = computed(() => {
-  const byCategory: Record<string, number> = {};
+  const byCategory = {};
   props.transactions
     .filter((t) => t.amount < 0)
     .forEach((t) => {
@@ -33,7 +33,7 @@ const options = {
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      position: "bottom" as const,
+      position: "bottom",
       labels: {
         font: { family: "DM Sans", size: 12 },
         color: "#6B6B80",
@@ -43,7 +43,7 @@ const options = {
       },
     },
     tooltip: {
-      callbacks: { label: (ctx: any) => ` ${ctx.parsed.toLocaleString("cs-CZ")} Kč` },
+      callbacks: { label: (ctx) => ` ${ctx.parsed.toLocaleString("cs-CZ")} Kč` },
     },
   },
   cutout: "68%",
