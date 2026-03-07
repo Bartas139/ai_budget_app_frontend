@@ -2,7 +2,7 @@
 definePageMeta({ middleware: "auth" });
 
 const { userId } = useAuth();
-const userId = computed(() => userId.value ?? "");
+userId = computed(() => userId.value ?? "");
 
 const api = useApi();
 
