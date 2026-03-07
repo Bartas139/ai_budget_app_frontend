@@ -51,14 +51,17 @@ const options = {
 </script>
 
 <template>
-  <div class="h-52">
-    <Doughnut v-if="chartData.labels.length > 0" :data="chartData" :options="options" />
-    <div v-else class="h-full flex flex-col items-center justify-center text-ink-muted gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
-      </svg>
-      <p class="text-xs">Zatím žádné výdaje</p>
+  <div class="bg-white rounded-2xl shadow-subtle border border-line p-6 animate-fade-up" style="animation-delay: 0.25s; opacity: 0">
+    <h2 class="font-display text-lg text-ink mb-5">Výdaje dle kategorií</h2>
+    <div class="h-52">
+      <Doughnut v-if="chartData.labels.length > 0" :data="chartData" :options="options" />
+      <div v-else class="h-full flex flex-col items-center justify-center text-ink-muted gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+        </svg>
+        <p class="text-xs">Zatím žádné výdaje</p>
+      </div>
     </div>
   </div>
 </template>

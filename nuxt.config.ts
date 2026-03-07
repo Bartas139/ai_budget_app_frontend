@@ -2,6 +2,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
 
+  components: [{ path: "~/components", pathPrefix: false }],
+
   modules: ["@nuxtjs/tailwindcss", "@clerk/nuxt"],
 
   runtimeConfig: {

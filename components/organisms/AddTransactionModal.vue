@@ -22,6 +22,16 @@ const selectedCategoryId = ref("");
 const newCategoryName = ref("");
 const confirmMode = ref("existing");
 
+const typeOptions = [
+  { value: "expense", label: "Výdaj",   activeClass: "text-rose-500" },
+  { value: "income",  label: "Příjem",  activeClass: "text-sage-600" },
+];
+
+const confirmOptions = [
+  { value: "existing", label: "Existující",    activeClass: "text-sky-600" },
+  { value: "new",      label: "Nová kategorie", activeClass: "text-lavender-600" },
+];
+
 onMounted(async () => {
   try {
     categories.value = await api.getCategories();
@@ -118,74 +128,27 @@ const confirm = async () => {
 
         <!-- STEP 1: Form -->
         <div v-if="step === 'form'" class="p-6 space-y-5">
-          <!-- Type toggle -->
-          <div class="flex gap-2 p-1 bg-surface rounded-xl">
-            <button
-              @click="form.type = 'expense'"
-              :class="[form.type === 'expense' ? 'bg-white shadow-subtle text-rose-500 font-semibold' : 'text-ink-secondary hover:text-ink', 'flex-1 py-2 rounded-lg text-sm transition-all']"
-            >
-              Výdaj
-            </button>
-            <button
-              @click="form.type = 'income'"
-              :class="[form.type === 'income' ? 'bg-white shadow-subtle text-sage-600 font-semibold' : 'text-ink-secondary hover:text-ink', 'flex-1 py-2 rounded-lg text-sm transition-all']"
-            >
-              Příjem
-            </button>
-          </div>
+          <TypeToggle v-model="form.type" :options="typeOptions" />
 
-          <!-- Amount -->
-          <div>
-            <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Částka (Kč)</label>
-            <input
-              v-model="form.amount"
-              type="number"
-              placeholder="0"
-              class="w-full bg-surface border border-transparent rounded-xl px-4 py-3 text-2xl font-semibold text-ink placeholder-ink-muted focus:outline-none focus:border-rose-200 focus:bg-white transition-all"
-            />
-          </div>
+          <AppInput v-model="form.amount" label="Částka (Kč)" type="number" placeholder="0" :large="true" />
+          <AppInput v-model="form.description" label="Popis" placeholder="Např. Oběd v restauraci..." />
 
-          <!-- Description -->
-          <div>
-            <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Popis</label>
-            <input
-              v-model="form.description"
-              type="text"
-              placeholder="Např. Oběd v restauraci..."
-              class="w-full bg-surface border border-transparent rounded-xl px-4 py-3 text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-rose-200 focus:bg-white transition-all"
-            />
-          </div>
-
-          <!-- Date + Note -->
           <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Datum</label>
-              <input
-                v-model="form.date"
-                type="date"
-                class="w-full bg-surface border border-transparent rounded-xl px-4 py-3 text-sm text-ink focus:outline-none focus:border-rose-200 focus:bg-white transition-all"
-              />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Poznámka</label>
-              <input
-                v-model="form.note"
-                type="text"
-                placeholder="Volitelně"
-                class="w-full bg-surface border border-transparent rounded-xl px-4 py-3 text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-rose-200 focus:bg-white transition-all"
-              />
-            </div>
+            <AppInput v-model="form.date" label="Datum" type="date" />
+            <AppInput v-model="form.note" label="Poznámka" placeholder="Volitelně" />
           </div>
 
           <p v-if="error" class="text-rose-500 text-xs font-medium">{{ error }}</p>
 
-          <button
+          <AppButton
+            :variant="form.type === 'income' ? 'sage' : 'rose'"
+            :loading="loading"
+            full
+            class="py-3 hover:-translate-y-0.5"
             @click="submit"
-            :disabled="loading"
-            :class="[form.type === 'income' ? 'bg-sage-400 hover:bg-sage-600 shadow-sage-glow' : 'bg-rose-400 hover:bg-rose-500 shadow-rose-glow', 'w-full text-white font-medium py-3 rounded-xl text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0']"
           >
             {{ loading ? 'AI kategorizuje...' : 'Uložit transakci' }}
-          </button>
+          </AppButton>
         </div>
 
         <!-- STEP 2: Confirm -->
@@ -204,21 +167,7 @@ const confirm = async () => {
             </div>
           </div>
 
-          <!-- Mode toggle -->
-          <div class="flex gap-2 p-1 bg-surface rounded-xl">
-            <button
-              @click="confirmMode = 'existing'"
-              :class="[confirmMode === 'existing' ? 'bg-white shadow-subtle text-sky-600 font-semibold' : 'text-ink-secondary', 'flex-1 py-2 rounded-lg text-sm transition-all']"
-            >
-              Existující
-            </button>
-            <button
-              @click="confirmMode = 'new'"
-              :class="[confirmMode === 'new' ? 'bg-white shadow-subtle text-lavender-600 font-semibold' : 'text-ink-secondary', 'flex-1 py-2 rounded-lg text-sm transition-all']"
-            >
-              Nová kategorie
-            </button>
-          </div>
+          <TypeToggle v-model="confirmMode" :options="confirmOptions" />
 
           <div v-if="confirmMode === 'existing'">
             <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Kategorie</label>
@@ -233,33 +182,23 @@ const confirm = async () => {
             </select>
           </div>
 
-          <div v-else>
-            <label class="block text-xs font-medium text-ink-muted mb-2 uppercase tracking-wider">Název kategorie</label>
-            <input
-              v-model="newCategoryName"
-              :placeholder="suggestion?.category?.name ?? 'Název kategorie'"
-              class="w-full bg-surface border border-transparent rounded-xl px-4 py-3 text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-lavender-200 focus:bg-white transition-all"
-            />
-          </div>
+          <AppInput
+            v-else
+            v-model="newCategoryName"
+            label="Název kategorie"
+            :placeholder="suggestion?.category?.name ?? 'Název kategorie'"
+          />
 
           <p v-if="error" class="text-rose-500 text-xs font-medium">{{ error }}</p>
 
           <div class="flex gap-3">
-            <button
-              @click="step = 'form'"
-              class="px-5 py-2.5 bg-surface border border-line text-ink-secondary text-sm font-medium rounded-xl hover:bg-line transition-colors"
-            >
-              Zpět
-            </button>
-            <button
-              @click="confirm"
-              :disabled="loading"
-              class="flex-1 bg-lavender-400 hover:bg-lavender-600 text-white font-medium py-2.5 rounded-xl text-sm transition-all disabled:opacity-50"
-            >
+            <AppButton variant="ghost" class="px-5 py-2.5" @click="step = 'form'">Zpět</AppButton>
+            <AppButton variant="lavender" :loading="loading" full class="py-2.5" @click="confirm">
               {{ loading ? 'Ukládám...' : 'Potvrdit a uložit' }}
-            </button>
+            </AppButton>
           </div>
         </div>
+
       </div>
     </div>
   </Teleport>

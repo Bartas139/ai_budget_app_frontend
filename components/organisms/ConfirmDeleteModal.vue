@@ -18,18 +18,8 @@ const emit = defineEmits(['confirm', 'cancel']);
           <span class="font-medium text-ink">„{{ description }}"</span> bude trvale odstraněna. Tuto akci nelze vzít zpět.
         </p>
         <div class="flex gap-3">
-          <button
-            @click="emit('cancel')"
-            class="flex-1 bg-surface border border-line text-ink-secondary font-medium py-2.5 rounded-xl text-sm hover:bg-line transition-colors"
-          >
-            Zrušit
-          </button>
-          <button
-            @click="emit('confirm')"
-            class="flex-1 bg-rose-500 text-white font-medium py-2.5 rounded-xl text-sm hover:bg-rose-600 transition-colors shadow-rose-glow"
-          >
-            Smazat
-          </button>
+          <AppButton variant="ghost" full class="py-2.5" @click="emit('cancel')">Zrušit</AppButton>
+          <AppButton variant="rose-solid" full class="py-2.5" @click="emit('confirm')">Smazat</AppButton>
         </div>
       </div>
     </div>
