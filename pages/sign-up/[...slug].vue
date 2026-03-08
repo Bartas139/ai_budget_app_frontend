@@ -1,5 +1,5 @@
 <template>
   <div class="min-h-screen bg-canvas flex items-center justify-center">
-    <SignUp routing="path" path="/sign-up" />
+    <SignUp />
   </div>
 </template>

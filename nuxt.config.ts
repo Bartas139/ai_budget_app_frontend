@@ -12,10 +12,10 @@ export default defineNuxtConfig({
   },
   clerk: {
     afterSignOutUrl: "/sign-in",
-    signInForceRedirectUrl: "/",
-    signUpForceRedirectUrl: "/",
     signInUrl: "/sign-in",
     signUpUrl: "/sign-up",
+    signInFallbackRedirectUrl: "/",
+    signUpFallbackRedirectUrl: "/",
   },
 
   app: {

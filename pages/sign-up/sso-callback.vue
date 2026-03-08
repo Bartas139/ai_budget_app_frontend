@@ -1,6 +1,6 @@
 <script setup>
 const clerk = useClerk();
-const { signUp } = useSignUp();
+const { signIn } = useSignIn();
 const error = ref(null);
 
 watchEffect(async () => {
@@ -8,23 +8,21 @@ watchEffect(async () => {
 
   try {
     await clerk.value.handleRedirectCallback({
-      signInForceRedirectUrl: "/",
       signUpForceRedirectUrl: "/",
+      signInForceRedirectUrl: "/",
       continueSignUpUrl: "/sign-up/continue",
     });
   } catch (err) {
     const errCode = err?.errors?.[0]?.code;
 
-    // Nový uživatel se pokusil přihlásit přes Google, ale účet ještě neexistuje
-    // → přeneseme OAuth stav na registraci
-    if (errCode === "external_account_not_found" && signUp.value) {
+    // Uživatel se pokusil zaregistrovat přes Google, ale účet už existuje
+    // → přeneseme OAuth stav na přihlášení
+    if (errCode === "external_account_exists" && signIn.value) {
       try {
-        await signUp.value.create({ transfer: true });
+        await signIn.value.create({ transfer: true });
 
-        if (signUp.value.status === "missing_requirements") {
-          await navigateTo("/sign-up/continue");
-        } else if (signUp.value.status === "complete") {
-          await clerk.value.setActive({ session: signUp.value.createdSessionId });
+        if (signIn.value.status === "complete") {
+          await clerk.value.setActive({ session: signIn.value.createdSessionId });
           await navigateTo("/");
         }
       } catch (transferErr) {
@@ -42,9 +40,9 @@ watchEffect(async () => {
 <template>
   <div class="min-h-screen bg-canvas flex items-center justify-center">
     <div v-if="error" class="text-center space-y-3">
-      <p class="text-rose-500 font-medium">Chyba přihlášení: {{ error }}</p>
-      <a href="/sign-in" class="text-sm text-ink-muted underline">Zkusit znovu</a>
+      <p class="text-rose-500 font-medium">Chyba registrace: {{ error }}</p>
+      <a href="/sign-up" class="text-sm text-ink-muted underline">Zkusit znovu</a>
     </div>
-    <div v-else class="text-sm text-ink-muted">Přihlašování...</div>
+    <div v-else class="text-sm text-ink-muted">Dokončování registrace...</div>
   </div>
 </template>
