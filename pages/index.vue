@@ -1,7 +1,7 @@
 <script setup>
 definePageMeta({ middleware: "auth" });
 
-const { userId } = useAuth();
+const { userId, isLoaded } = useAuth();
 const api = useApi();
 
 const transactions = ref([]);
@@ -25,7 +25,9 @@ const fetchData = async () => {
   loading.value = false;
 };
 
-onMounted(fetchData);
+watch(isLoaded, (loaded) => {
+  if (loaded && userId.value) fetchData();
+}, { immediate: true });
 
 const filteredTransactions = computed(() => {
   let result = transactions.value;
@@ -42,7 +44,8 @@ const filteredTransactions = computed(() => {
 
   if (selectedCategoryIds.value.length > 0) {
     result = result.filter((t) => {
-      const id = typeof t.categoryId === "object" ? t.categoryId?._id : t.categoryId;
+      const id =
+        typeof t.categoryId === "object" ? t.categoryId?._id : t.categoryId;
       return selectedCategoryIds.value.includes(id);
     });
   }
@@ -50,19 +53,42 @@ const filteredTransactions = computed(() => {
   return result;
 });
 
-const totalBalance  = computed(() => filteredTransactions.value.reduce((s, t) => s + t.amount, 0));
-const totalIncome   = computed(() => filteredTransactions.value.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0));
-const totalExpenses = computed(() => filteredTransactions.value.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0));
+const totalBalance = computed(() =>
+  filteredTransactions.value.reduce((s, t) => s + t.amount, 0),
+);
+const totalIncome = computed(() =>
+  filteredTransactions.value
+    .filter((t) => t.amount > 0)
+    .reduce((s, t) => s + t.amount, 0),
+);
+const totalExpenses = computed(() =>
+  filteredTransactions.value
+    .filter((t) => t.amount < 0)
+    .reduce((s, t) => s + Math.abs(t.amount), 0),
+);
 const fmt = (n) => n.toLocaleString("cs-CZ") + " Kč";
 
 const recent = computed(() =>
   [...filteredTransactions.value]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 12)
+    .slice(0, 12),
 );
 
 const monthName = computed(() => {
-  const months = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+  const months = [
+    "Leden",
+    "Únor",
+    "Březen",
+    "Duben",
+    "Květen",
+    "Červen",
+    "Červenec",
+    "Srpen",
+    "Září",
+    "Říjen",
+    "Listopad",
+    "Prosinec",
+  ];
   return months[new Date().getMonth()];
 });
 
@@ -88,7 +114,9 @@ const confirmDelete = async () => {
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-40">
         <div class="text-center">
-          <div class="w-10 h-10 rounded-full border-2 border-rose-200 border-t-rose-400 animate-spin mx-auto mb-4" />
+          <div
+            class="w-10 h-10 rounded-full border-2 border-rose-200 border-t-rose-400 animate-spin mx-auto mb-4"
+          />
           <p class="text-sm text-ink-muted">Načítám data...</p>
         </div>
       </div>
@@ -97,32 +125,71 @@ const confirmDelete = async () => {
         <!-- Page title -->
         <div class="mb-4 animate-fade-up">
           <h1 class="font-display text-3xl text-ink mb-1">Přehled financí</h1>
-          <p class="text-sm text-ink-secondary">{{ filteredTransactions.length }} transakcí v daném období</p>
+          <p class="text-sm text-ink-secondary">
+            {{ filteredTransactions.length }} transakcí v daném období
+          </p>
         </div>
 
         <!-- Filters -->
-        <div class="space-y-2 mb-8 animate-fade-up" style="animation-delay: 0.03s; opacity: 0">
+        <div
+          class="space-y-2 mb-8 animate-fade-up"
+          style="animation-delay: 0.03s; opacity: 0"
+        >
           <DateRangeFilter @change="dateRange = $event" />
-          <CategoryFilter :categories="categories" @change="selectedCategoryIds = $event" />
+          <CategoryFilter
+            :categories="categories"
+            @change="selectedCategoryIds = $event"
+          />
         </div>
 
         <!-- Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div class="animate-fade-up" style="animation-delay: 0.05s; opacity: 0">
-            <StatCard label="Celkový zůstatek" :value="fmt(totalBalance)" icon="◈" variant="sky" :sub="totalBalance >= 0 ? 'Kladné saldo' : 'Záporné saldo'" />
+          <div
+            class="animate-fade-up"
+            style="animation-delay: 0.05s; opacity: 0"
+          >
+            <StatCard
+              label="Celkový zůstatek"
+              :value="fmt(totalBalance)"
+              icon="◈"
+              variant="sky"
+              :sub="totalBalance >= 0 ? 'Kladné saldo' : 'Záporné saldo'"
+            />
           </div>
-          <div class="animate-fade-up" style="animation-delay: 0.1s; opacity: 0">
-            <StatCard label="Příjmy" :value="fmt(totalIncome)" icon="↑" variant="sage" sub="Celkem přijato" />
+          <div
+            class="animate-fade-up"
+            style="animation-delay: 0.1s; opacity: 0"
+          >
+            <StatCard
+              label="Příjmy"
+              :value="fmt(totalIncome)"
+              icon="↑"
+              variant="sage"
+              sub="Celkem přijato"
+            />
           </div>
-          <div class="animate-fade-up" style="animation-delay: 0.15s; opacity: 0">
-            <StatCard label="Výdaje" :value="fmt(totalExpenses)" icon="↓" variant="rose" sub="Celkem utraceno" />
+          <div
+            class="animate-fade-up"
+            style="animation-delay: 0.15s; opacity: 0"
+          >
+            <StatCard
+              label="Výdaje"
+              :value="fmt(totalExpenses)"
+              icon="↓"
+              variant="rose"
+              sub="Celkem utraceno"
+            />
           </div>
         </div>
 
         <!-- Content grid -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div class="lg:col-span-3">
-            <TransactionList :transactions="filteredTransactions" :recent="recent" @delete="requestDelete" />
+            <TransactionList
+              :transactions="filteredTransactions"
+              :recent="recent"
+              @delete="requestDelete"
+            />
           </div>
           <div class="lg:col-span-2">
             <SpendingChart :transactions="filteredTransactions" />
@@ -132,7 +199,11 @@ const confirmDelete = async () => {
     </main>
   </div>
 
-  <AddTransactionModal v-if="showModal" @close="showModal = false" @saved="fetchData" />
+  <AddTransactionModal
+    v-if="showModal"
+    @close="showModal = false"
+    @saved="fetchData"
+  />
   <ConfirmDeleteModal
     v-if="deleteTarget !== null"
     :description="deleteTarget.description"

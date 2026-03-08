@@ -1,5 +1,4 @@
 export default defineNuxtConfig({
-  devtools: { enabled: true },
   ssr: false,
 
   components: [{ path: "~/components", pathPrefix: false }],
@@ -8,9 +7,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase:
-        process.env.NUXT_PUBLIC_API_BASE ||
-        "https://ai-budget-app-theta.vercel.app",
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
     },
   },
   clerk: {
