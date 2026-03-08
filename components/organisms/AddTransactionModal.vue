@@ -1,7 +1,6 @@
 <script setup>
 const emit = defineEmits(['close', 'saved']);
 const api = useApi();
-const { userId } = useAuth();
 
 const form = reactive({
   description: "",
@@ -53,7 +52,6 @@ const submit = async () => {
         : Math.abs(Number(form.amount));
 
     const result = await api.createTransaction({
-      userId: userId.value,
       amount,
       description: form.description,
       date: form.date,
@@ -73,8 +71,8 @@ const submit = async () => {
       }
       step.value = "confirm";
     }
-  } catch {
-    error.value = "Chyba při ukládání. Zkus to znovu.";
+  } catch (err) {
+    error.value = err.message || "Chyba při ukládání. Zkus to znovu.";
   } finally {
     loading.value = false;
   }
@@ -111,8 +109,8 @@ const confirm = async () => {
     await api.confirmTransaction(payload);
     emit("saved");
     emit("close");
-  } catch {
-    error.value = "Chyba při potvrzování.";
+  } catch (err) {
+    error.value = err.message || "Chyba při potvrzování.";
   } finally {
     loading.value = false;
   }

@@ -7,6 +7,7 @@ const api = useApi();
 const transactions = ref([]);
 const categories = ref([]);
 const loading = ref(true);
+const fetchError = ref("");
 const showModal = ref(false);
 const deleteTarget = ref(null);
 const dateRange = ref({ from: null, to: null });
@@ -14,14 +15,14 @@ const selectedCategoryIds = ref([]);
 
 const fetchData = async () => {
   loading.value = true;
-  try {
-    const [txRes, catRes] = await Promise.allSettled([
-      api.getTransactions(userId.value),
-      api.getCategories(),
-    ]);
-    if (txRes.status === "fulfilled") transactions.value = txRes.value || [];
-    if (catRes.status === "fulfilled") categories.value = catRes.value || [];
-  } catch {}
+  fetchError.value = "";
+  const [txRes, catRes] = await Promise.allSettled([
+    api.getTransactions(),
+    api.getCategories(),
+  ]);
+  if (txRes.status === "fulfilled") transactions.value = txRes.value || [];
+  else fetchError.value = txRes.reason?.message || "Nepodařilo se načíst transakce.";
+  if (catRes.status === "fulfilled") categories.value = catRes.value || [];
   loading.value = false;
 };
 
@@ -119,6 +120,20 @@ const confirmDelete = async () => {
           />
           <p class="text-sm text-ink-muted">Načítám data...</p>
         </div>
+      </div>
+
+      <!-- Fetch error -->
+      <div
+        v-else-if="fetchError"
+        class="flex flex-col items-center justify-center py-40 gap-3 text-center"
+      >
+        <p class="text-rose-500 font-medium">{{ fetchError }}</p>
+        <button
+          class="text-sm text-ink-muted underline underline-offset-2 hover:text-ink transition-colors"
+          @click="fetchData"
+        >
+          Zkusit znovu
+        </button>
       </div>
 
       <template v-else>

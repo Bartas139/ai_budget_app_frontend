@@ -1,21 +1,26 @@
 export const useApi = () => {
   const config = useRuntimeConfig();
   const base = config.public.apiBase;
-  const { getToken } = useAuth();
+  const { session } = useSession();
 
   const authFetch = async (url, options = {}) => {
-    const token = await getToken();
-    return $fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const token = await session.value?.getToken();
+    try {
+      return await $fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      const message = err?.data?.message || err?.message || "Neočekávaná chyba.";
+      throw new Error(message);
+    }
   };
 
-  const getTransactions = async (userId) => {
-    return await authFetch(`${base}/transactions?userId=${userId}`);
+  const getTransactions = async () => {
+    return await authFetch(`${base}/transactions`);
   };
 
   const getCategories = async () => {
@@ -42,5 +47,11 @@ export const useApi = () => {
     });
   };
 
-  return { getTransactions, getCategories, createTransaction, confirmTransaction, deleteTransaction };
+  return {
+    getTransactions,
+    getCategories,
+    createTransaction,
+    confirmTransaction,
+    deleteTransaction,
+  };
 };
